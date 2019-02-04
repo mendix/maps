@@ -41,15 +41,17 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
     };
 
     render() {
-        return createElement("div", {},
+        return createElement("div", {
+                className: classNames("widget-maps", this.props.className),
+                style: { ...this.props.divStyles , ...Utils.getDimensions(this.props) }
+            },
             createElement(Alert, {
                 bootstrapStyle: "danger",
                 className: "widget-leaflet-maps-alert leaflet-control"
             }, this.state.alertMessage),
             createElement("div",
                 {
-                    className: classNames("widget-leaflet-maps-wrapper", this.props.className),
-                    style: { ...this.props.divStyles , ...Utils.getDimensions(this.props) }
+                    className: "widget-leaflet-maps-wrapper"
                 },
                 createElement("div", {
                     className: "widget-leaflet-maps",
