@@ -10,10 +10,12 @@ import {
     tileLayer
 } from "leaflet";
 import * as classNames from "classnames";
+import ReactResizeDetector from "react-resize-detector";
 
 import { Container, MapUtils } from "../utils/namespace";
 import Utils from "../utils/Utils";
 import { Alert } from "./Alert";
+import { validLocation } from "../utils/Validations";
 type MapProps = Container.MapProps;
 type DataSourceLocationProps = Container.DataSourceLocationProps;
 type Location = Container.Location;
@@ -29,15 +31,19 @@ export interface LeafletMapProps extends SharedProps, MapProps {
 export interface LeafletMapState {
     center: LatLngLiteral;
     alertMessage?: string;
+    resized: boolean;
 }
 
 export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
     private leafletNode?: HTMLDivElement;
-    private defaultCenterLocation: LatLngLiteral = { lat: 51.9107963, lng: 4.4789878 };
+    private defaultCenterLocation: LatLngLiteral = { lat: 51.9066346, lng: 4.4861703 };
     private map?: Map;
     private markerGroup = new FeatureGroup();
+    private readonly onResizeHandle = this.onResize.bind(this);
+
     readonly state: LeafletMapState = {
-        center: this.defaultCenterLocation
+        center: this.getDefaultCenter(this.props),
+        resized: false
     };
 
     render() {
@@ -56,6 +62,13 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
                 createElement("div", {
                     className: "widget-leaflet-maps",
                     ref: this.getRef
+                }),
+                createElement(ReactResizeDetector, {
+                    handleWidth: true,
+                    handleHeight: true,
+                    refreshRate: 100,
+                    refreshMode: "throttle",
+                    onResize: this.onResizeHandle
                 })
             )
         );
@@ -64,16 +77,17 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
     componentDidMount() {
         if (this.leafletNode && !this.map) {
             this.map = new Map(this.leafletNode, {
-                scrollWheelZoom: this.props.optionScroll,
-                zoomControl: this.props.optionZoomControl,
-                attributionControl: this.props.attributionControl,
-                zoom: this.props.zoomLevel,
-                minZoom: 2,
-                // Work around for page scroll down to botom on first click on map in Chrome and IE
-                // https://github.com/Leaflet/Leaflet/issues/5392
-                keyboard: false,
-                dragging: this.props.optionDrag
-            }).addLayer(this.setTileLayer());
+                    scrollWheelZoom: this.props.optionScroll,
+                    zoomControl: this.props.optionZoomControl,
+                    attributionControl: this.props.attributionControl,
+                    zoom: this.props.zoomLevel,
+                    minZoom: 2,
+                    // Work around for page scroll down to botom on first click on map in Chrome and IE
+                    // https://github.com/Leaflet/Leaflet/issues/5392
+                    keyboard: false,
+                    dragging: this.props.optionDrag
+                })
+                .addLayer(this.setTileLayer());
             if (this.props.inPreviewMode) {
                 this.setDefaultCenter(this.props);
             }
@@ -86,6 +100,7 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
         }
         if (this.props.allLocations !== nextProps.allLocations) {
             this.setDefaultCenter(nextProps);
+            this.setState({ resized: false });
         }
     }
 
@@ -98,6 +113,33 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
     componentWillUnmount() {
         if (this.map) {
             this.map.remove();
+        }
+    }
+
+    private getDefaultCenter(props: LeafletMapProps): LatLngLiteral {
+        const { defaultCenterLatitude, defaultCenterLongitude } = props;
+        const location = {
+            latitude: defaultCenterLatitude && parseFloat(defaultCenterLatitude),
+            longitude: defaultCenterLongitude && parseFloat(defaultCenterLongitude)
+        };
+        if (validLocation(location)) {
+            return {
+                lat: parseFloat(defaultCenterLatitude!),
+                lng: parseFloat(defaultCenterLongitude!)
+            };
+        }
+
+        return this.defaultCenterLocation;
+    }
+
+    private onResize() {
+        // When map is placed on the non default tab, the maps has no size.
+        // Therefor it need to update on the first view.
+        if (this.map && !this.state.resized) {
+            this.map!.invalidateSize();
+            this.setDefaultCenter(this.props);
+            this.setBounds();
+            this.setState({ resized: true });
         }
     }
 
@@ -137,56 +179,55 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
     private renderMarkers = (locations?: Location[]) => {
         this.markerGroup.clearLayers();
         if (locations && locations.length) {
-            locations.forEach(location => this.createMarker(location).then(marker =>
-                this.markerGroup.addLayer(marker.on("click", event => {
+            locations.forEach(location => {
+                const marker = this.createMarker(location);
+                const layer = this.markerGroup.addLayer(marker.on("click", event => {
                     if (this.props.onClickMarker && location.locationAttr && location.locationAttr.onClickEvent !== "doNothing") {
                         this.props.onClickMarker(event, location.locationAttr);
                     }
-                }))).then(layer => this.map ? this.map.addLayer(layer) : undefined)
-                .catch(reason => this.setState({ alertMessage: `${reason}` }))
-            );
+                }));
+                this.map!.addLayer(layer);
+            });
             this.setBounds();
         } else if (this.map) {
             this.map.removeLayer(this.markerGroup);
+            this.map.setZoom(this.props.zoomLevel);
         }
     }
 
     private setBounds = () => {
         const { defaultCenterLatitude, defaultCenterLongitude, autoZoom, zoomLevel } = this.props;
         setTimeout(() => {
-            try {
-                if (this.map && this.markerGroup) {
+            if (this.map && this.markerGroup) {
+                const bounds = this.markerGroup.getBounds();
+                if (bounds.isValid()) {
                     this.map.fitBounds(this.markerGroup.getBounds(), { animate: false }).invalidateSize();
-                    if (!autoZoom) {
-                        if (defaultCenterLatitude && defaultCenterLongitude) {
-                            this.map.panTo({
-                                lat: parseFloat(defaultCenterLatitude),
-                                lng: parseFloat(defaultCenterLongitude)
-                            }, { animate: false });
-                        }
-                        this.map.setZoom(zoomLevel);
-                    }
                 }
-            } catch (error) {
-                this.setState({ alertMessage: `Invalid map bounds ${error.message}` });
+                if (!autoZoom) {
+                    if (defaultCenterLatitude && defaultCenterLongitude) {
+                        this.map.panTo({
+                            lat: parseFloat(defaultCenterLatitude),
+                            lng: parseFloat(defaultCenterLongitude)
+                        }, { animate: false });
+                    }
+                    this.map.setZoom(zoomLevel);
+                }
             }
         }, 0);
     }
 
-    private createMarker = (location: Location): Promise<Marker> =>
-        new Promise((resolve) => {
-            const { latitude, longitude, url } = location;
-            if (url) {
-                resolve(
-                    new Marker([ Number(latitude), Number(longitude) ]).setIcon(icon({
-                        iconUrl: url,
-                        iconSize: [ 38, 95 ],
-                        iconAnchor: [ 22, 94 ],
-                        className: "marker"
-                    }))
-                );
-            } else {
-                resolve(new Marker([ Number(latitude), Number(longitude) ]));
-            }
-        })
+    private createMarker = (location: Location): Marker => {
+        const { latitude, longitude, url } = location;
+        const marker = new Marker([ Number(latitude), Number(longitude) ]);
+        if (url) {
+            marker.setIcon(icon({
+                iconUrl: url,
+                iconSize: [ 38, 95 ],
+                iconAnchor: [ 22, 94 ],
+                className: "marker"
+            }));
+        }
+
+        return marker;
+    }
 }

@@ -47,8 +47,8 @@ export namespace Container {
     }
 
     export interface DefaultLocations {
-        defaultCenterLatitude?: string;
-        defaultCenterLongitude?: string;
+        defaultCenterLatitude: string;
+        defaultCenterLongitude: string;
     }
 
     export interface MarkerIconProps {
@@ -92,19 +92,20 @@ export namespace Container {
 export namespace Data {
 
     export interface FetchDataOptions {
-        type?: Container.DataSource;
+        type: Container.DataSource;
         entity?: string;
         guid?: string;
-        mxform?: mxui.lib.form._FormBase;
+        mxform: mxui.lib.form._FormBase;
         constraint?: string;
         microflow?: string;
         nanoflow: Nanoflow;
-        contextObject: mendix.lib.MxObject;
+        contextObject?: mendix.lib.MxObject;
         inputParameterEntity: string;
+        requiresContext: boolean;
     }
 
     export interface FetchByXPathOptions {
-        guid: string;
+        guid?: string;
         entity: string;
         constraint: string;
     }

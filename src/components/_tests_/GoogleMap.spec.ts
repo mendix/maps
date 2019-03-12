@@ -1,5 +1,6 @@
 import { mount, shallow } from "enzyme";
 import { createElement } from "react";
+import ReactResizeDetector from "react-resize-detector";
 
 import { Alert } from "../../components/Alert";
 import { GoogleMap, GoogleMapsProps } from "../GoogleMap";
@@ -46,7 +47,8 @@ describe("Google maps", () => {
                 createElement(Alert, { className: "widget-google-maps-alert" }),
                 createElement("div", { className: "widget-google-maps-wrapper" },
                     createElement("div", { className: "widget-google-maps" })
-                )
+                ),
+                createElement(ReactResizeDetector)
             )
         );
     });
@@ -64,7 +66,8 @@ describe("Google maps", () => {
                 createElement(Alert, { className: "widget-google-maps-alert" }),
                 createElement("div", { className: "widget-google-maps-wrapper" },
                     createElement("div", { className: "widget-google-maps" })
-                )
+                ),
+                createElement(ReactResizeDetector)
             )
         );
     });
@@ -82,7 +85,8 @@ describe("Google maps", () => {
                 createElement(Alert, { className: "widget-google-maps-alert" }),
                 createElement("div", { className: "widget-google-maps-wrapper" },
                     createElement("div", { className: "widget-google-maps" })
-                )
+                ),
+                createElement(ReactResizeDetector)
             )
         );
     });
@@ -100,7 +104,8 @@ describe("Google maps", () => {
                 createElement(Alert, { className: "widget-google-maps-alert" }),
                 createElement("div", { className: "widget-google-maps-wrapper" },
                     createElement("div", { className: "widget-google-maps" })
-                )
+                ),
+                createElement(ReactResizeDetector)
             )
         );
     });
@@ -110,8 +115,7 @@ describe("Google maps", () => {
         googleMaps.setProps({
             fetchingData: false
         });
-
-        expect(googleMaps.state("center")).toEqual({ lat: 51.9107963, lng: 4.4789878 });
+        expect(googleMaps.state("center")).toEqual({ lat: 51.9066346, lng: 4.4861703 });
     });
 
     it("creates markers from given locations", () => {

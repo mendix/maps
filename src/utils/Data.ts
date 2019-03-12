@@ -3,31 +3,24 @@ import { UrlHelper } from "./UrlHelper";
 
 type MxObject = mendix.lib.MxObject;
 
-export const fetchData = (options: Data.FetchDataOptions): Promise<MxObject[]> =>
-    new Promise<MxObject[]>((resolve, reject) => {
-        const { guid, entity, contextObject, inputParameterEntity } = options;
-        if (entity && guid) {
-            if (options.type === "XPath") {
-                fetchByXPath({
-                    guid,
-                    entity,
-                    constraint: options.constraint || ""
-                })
-                .then(mxObjects => resolve(mxObjects))
-                .catch(message => reject({ message }));
-            } else if (options.type === "microflow" && options.microflow) {
-                fetchByMicroflow(options.microflow, guid, contextObject, inputParameterEntity)
-                    .then(mxObjects => resolve(mxObjects))
-                    .catch(message => reject({ message }));
-            } else if (options.type === "nanoflow" && options.nanoflow.nanoflow && options.mxform) {
-                fetchByNanoflow(options.nanoflow, options.mxform)
-                    .then(resolve)
-                    .catch(message => reject({ message }));
-            }
-        } else {
-            reject("entity & guid are required");
-        }
-    });
+export const fetchData = (options: Data.FetchDataOptions): Promise<MxObject[]> => {
+    const { type, entity, contextObject, inputParameterEntity, microflow, mxform, nanoflow } = options;
+    if (type === "XPath" && entity) {
+        return fetchByXPath({
+            guid: contextObject && contextObject.getGuid(),
+            entity,
+            constraint: options.constraint || ""
+        });
+    }
+    if (type === "microflow" && microflow && contextObject) {
+        return fetchByMicroflow(microflow, contextObject, mxform, inputParameterEntity);
+    }
+    if (type === "nanoflow" && nanoflow.nanoflow && contextObject) {
+        return fetchByNanoflow(nanoflow, contextObject, mxform, inputParameterEntity);
+    }
+
+    return Promise.reject(new Error("Failed data retrieval"));
+};
 
 const fetchByXPath = (options: Data.FetchByXPathOptions): Promise<MxObject[]> => new Promise<MxObject[]>((resolve, reject) => {
     const { guid, entity, constraint } = options;
@@ -39,38 +32,44 @@ const fetchByXPath = (options: Data.FetchByXPathOptions): Promise<MxObject[]> =>
     window.mx.data.get({
         xpath,
         callback: resolve,
-        error: error => reject(`An error occurred while retrieving data via XPath: ${xpath}: ${error.message}`)
+        error: error => reject(new Error(`An error occurred while retrieving data via XPath: ${xpath}: ${error.message}`))
     });
 });
 
-const fetchByMicroflow = (actionname: string, guid: string, contextObj: mendix.lib.MxObject, inputParameterEntity: string): Promise<MxObject[]> => {
+const fetchByMicroflow = (actionName: string, contextObj: MxObject, mxform: mxui.lib.form._FormBase, inputParameterEntity: string): Promise<MxObject[]> => {
     if (contextObj.getEntity() !== inputParameterEntity) {
-        logger.warn("input parameter does not match the context object type");
+        Promise.reject(new Error("Input parameter entity does not match the context object type"));
     }
 
     return new Promise((resolve, reject) => {
-        window.mx.ui.action(actionname, {
-            params: {
-                applyto: "selection",
-                guids: [ guid ]
-            },
-            callback: (mxObjects: MxObject[] | any) => resolve(mxObjects),
-            error: error => reject(`An error occurred while retrieving data via microflow: ${actionname}: ${error.message}`)
+        const context = new mendix.lib.MxContext();
+        context.setTrackObject(contextObj);
+        window.mx.ui.action(actionName, {
+            context,
+            origin: mxform,
+            callback: (mxObjects: MxObject[]) => resolve(mxObjects),
+            error: error => reject(new Error(`An error occurred while retrieving data via microflow: ${actionName}: ${error.message}`))
         });
     });
 };
 
-const fetchByNanoflow = (actionname: Data.Nanoflow, mxform: mxui.lib.form._FormBase): Promise<MxObject[]> =>
-    new Promise((resolve: (objects: MxObject[]) => void, reject) => {
+const fetchByNanoflow = (nanoflow: Data.Nanoflow, contextObj: MxObject, mxform: mxui.lib.form._FormBase, inputParameterEntity: string): Promise<MxObject[]> => {
+    if (contextObj.getEntity() !== inputParameterEntity) {
+        Promise.reject(new Error("Input parameter entity does not match the context object type"));
+    }
+
+    return new Promise((resolve: (objects: MxObject[]) => void, reject) => {
         const context = new mendix.lib.MxContext();
+        context.setTrackObject(contextObj);
         window.mx.data.callNanoflow({
-            nanoflow: actionname,
+            nanoflow,
             origin: mxform,
             context,
-            callback: resolve,
-            error: error => reject(`An error occurred while retrieving data via nanoflow: ${actionname}: ${error.message}`)
+            callback: (data:  MxObject[]) => resolve(data),
+            error: error => reject(new Error(`An error occurred while retrieving data via nanoflow: ${error.message}`))
         });
     });
+};
 
 export const fetchMarkerObjectUrl = (options: Data.FetchMarkerIcons, mxObject: mendix.lib.MxObject): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -84,10 +83,11 @@ export const fetchMarkerObjectUrl = (options: Data.FetchMarkerIcons, mxObject: m
 
                     return window.mx.data.getImageUrl(url,
                         objectUrl => resolve(objectUrl),
-                        error => reject(`Error while retrieving the image url: ${error.message}`)
+                        error => reject(new Error(`Error while retrieving the image url: ${error.message}`))
                     );
                 } else {
-                    reject("Upload Image inorder to view marker");
+                    logger.warn("Marker system image object does not have any content, fallback to default marker");
+                    resolve("");
                 }
             });
         } else if (type === "enumImage" && mxObject) {

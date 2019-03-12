@@ -1,10 +1,13 @@
 import { Component, createElement } from "react";
 import * as classNames from "classnames";
+import ReactResizeDetector from "react-resize-detector";
 
 import { Alert } from "./Alert";
 import googleApiWrapper from "./GoogleApi";
 import { Container, MapUtils } from "../utils/namespace";
 import Utils from "../utils/Utils";
+import { validLocation } from "../utils/Validations";
+
 type MapProps = Container.MapProps;
 type DataSourceLocationProps = Container.DataSourceLocationProps;
 type Location = Container.Location;
@@ -18,17 +21,21 @@ export interface GoogleMapsProps extends SharedProps, MapProps {
 export interface GoogleMapState {
     center: google.maps.LatLngLiteral;
     alertMessage?: string;
+    resized: boolean;
 }
 
 export class GoogleMap extends Component<GoogleMapsProps, GoogleMapState> {
     private map!: google.maps.Map;
-    private defaultCenterLocation: google.maps.LatLngLiteral = { lat: 51.9107963, lng: 4.4789878 };
+    private defaultCenterLocation: google.maps.LatLngLiteral = { lat: 51.9066346, lng: 4.4861703 };
     private markers: google.maps.Marker[] = [];
     private bounds!: google.maps.LatLngBounds;
     private googleMapsNode?: HTMLDivElement;
+    private readonly onResizeHandle = this.onResize.bind(this);
+
     readonly state: GoogleMapState = {
-        center: this.defaultCenterLocation,
-        alertMessage: this.props.alertMessage
+        center: this.getDefaultCenter(this.props),
+        alertMessage: this.props.alertMessage,
+        resized: false
     };
 
     render() {
@@ -48,7 +55,14 @@ export class GoogleMap extends Component<GoogleMapsProps, GoogleMapState> {
                     className: "widget-google-maps",
                     ref: this.getRef
                 })
-            )
+            ),
+            createElement(ReactResizeDetector, {
+                handleWidth: true,
+                handleHeight: true,
+                refreshRate: 100,
+                refreshMode: "throttle",
+                onResize: this.onResizeHandle
+            })
         );
     }
 
@@ -64,12 +78,38 @@ export class GoogleMap extends Component<GoogleMapsProps, GoogleMapState> {
         }
         if (nextProps.scriptsLoaded && (this.props.allLocations !== nextProps.allLocations || !this.map)) {
             this.createUpdateMap(nextProps);
+            this.setState({ resized: false });
         }
     }
 
     componentDidUpdate() {
-        if (this.map && !this.props.fetchingData) {
+        if (this.map && !this.props.fetchingData && !this.state.resized) {
             this.map.setCenter(this.state.center);
+        }
+    }
+
+    private getDefaultCenter(props: GoogleMapsProps): google.maps.LatLngLiteral {
+        const { defaultCenterLatitude, defaultCenterLongitude } = props;
+        const location = {
+            latitude: defaultCenterLatitude && parseFloat(defaultCenterLatitude),
+            longitude: defaultCenterLongitude && parseFloat(defaultCenterLongitude)
+        };
+        if (validLocation(location)) {
+            return {
+                lat: parseFloat(defaultCenterLatitude!),
+                lng: parseFloat(defaultCenterLongitude!)
+            };
+        }
+
+        return this.defaultCenterLocation;
+    }
+
+    private onResize() {
+        // When map is placed on the non default tab, the maps has no size.
+        // Therefor it need to update on the first view.
+        if (this.map && !this.state.resized) {
+            this.createUpdateMap(this.props);
+            this.setState({ resized: true });
         }
     }
 
@@ -173,7 +213,7 @@ export class GoogleMap extends Component<GoogleMapsProps, GoogleMapState> {
             try {
                 return JSON.parse(this.props.mapStyles);
             } catch (error) {
-                this.setState({ alertMessage: `invalid Map styles, ${error}` });
+                this.setState({ alertMessage: `invalid Map styles, ${error.message}` });
             }
         }
 

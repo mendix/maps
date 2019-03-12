@@ -3,15 +3,16 @@
     height: 100%;
 }
 
-.widget-leaflet-maps-wrapper > div {
+.widget-leaflet-maps {
     top: 0; bottom: 0; left: 0; right: 0;
     position: absolute;
     z-index: 1;
 }
 
 .widget-leaflet-maps-alert.leaflet-control {
-    float: none;
-    z-index: 1;
+    position: absolute;
+    z-index: 10;
+    width: 100%;
 }
 
 .widget-leaflet-maps .marker {
@@ -23,11 +24,17 @@
     height: 100%;
 }
 
+.alert.alert-danger.widget-google-maps-alert {
+    position: absolute;
+    z-index: 10;
+    width: 100%;
+}
+
 .widget-google-maps-wrapper > div {
     position: absolute;
     top: 0; bottom: 0; left: 0; right: 0;
 }
 
-.widget-maps{
+.widget-maps {
     position: relative;
 }
