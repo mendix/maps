@@ -1,4 +1,8 @@
 "use strict";
+
+require('dotenv').config();
+
+const path = require("path");
 const webpack = require("webpack");
 const webpackConfig = require("./webpack.config");
 const merge = require("webpack-merge");
@@ -21,6 +25,8 @@ webpackConfigRelease[0].module.rules[1] = {
         use: [ "css-loader", "sass-loader" ]
     })
 };
+
+const projectDistFolder = process.env.MX_PROJECT_PATH || "./dist/MxTestProject/";
 
 module.exports = function(grunt) {
     const pkg = grunt.file.readJSON("package.json");
@@ -55,7 +61,7 @@ module.exports = function(grunt) {
         copy: {
             distDeployment: {
                 files: [ {
-                    dest: "./dist/MxTestProject/deployment/web/widgets",
+                    dest: path.join(projectDistFolder, "deployment/web/widgets"),
                     cwd: "./dist/tmp/widgets/",
                     src: [ "**/*" ],
                     expand: true
@@ -63,7 +69,7 @@ module.exports = function(grunt) {
             },
             mpk: {
                 files: [ {
-                    dest: "./dist/MxTestProject/widgets",
+                    dest: path.join(projectDistFolder, "widgets"),
                     cwd: "./dist/" + pkg.version + "/",
                     src: [ pkg.widgetName + ".mpk" ],
                     expand: true
@@ -89,8 +95,8 @@ module.exports = function(grunt) {
             build: [
                 "./dist/" + pkg.version + "/" + pkg.widgetName + "/*",
                 "./dist/tmp/**/*",
-                "./dist/MxTestProject/deployment/web/widgets/" + pkg.widgetName + "/*",
-                "./dist/MxTestProject/widgets/" + pkg.widgetName + ".mpk",
+                path.join(projectDistFolder, "deployment/web/widgets/" + pkg.widgetName + "/*"),
+                path.join(projectDistFolder, "widgets/" + pkg.widgetName + ".mpk"),
                 "./dist/wdio/**/*"
             ]
         },
