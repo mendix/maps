@@ -24,7 +24,7 @@
     "deployAndTest": "npm run deploy && npm run test:e2e"
   },
   "config": {
-    "mendixHost": "http://localhost:8080",
+    "mendixHost": "http://10.211.55.3:8080",
     "developmentPort": 3000
   },
   "pre-commit": [
@@ -49,6 +49,7 @@
     "@types/jasmine": "^3.3.12",
     "@types/karma": "^3.0.2",
     "@types/leaflet": "^1.4.4",
+    "@types/leaflet-providers": "^1.2.0",
     "@types/node": "^11.13.8",
     "@types/react": "^16.8.15",
     "@types/react-dom": "^16.8.4",
@@ -124,6 +125,7 @@
     "classnames": "^2.2.6",
     "leaflet": "^1.4.0",
     "leaflet-defaulticon-compatibility": "^0.1.1",
+    "leaflet-providers": "^1.9.0",
     "react-resize-detector": "^4.1.3"
   }
 }

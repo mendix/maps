@@ -2,7 +2,7 @@
 <widget id="com.mendix.widget.custom.Maps.Maps" needsEntityContext="false" offlineCapable="true"
     xmlns="http://www.mendix.com/widget/1.0/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mendix.com/widget/1.0/ ../xsd/widget.xsd">
-    <name>Maps</name>
+    <name>Maps (modified)</name>
     <description>Add different type of maps to your application, using LeafletJS</description>
     <icon>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</icon>
     <properties>
@@ -277,6 +277,114 @@
                     <description/>
                 </property>
             </properties>
+        </property>
+        <!-- OpenStreetMap -->
+        <property key="openStreetMapType" type="enumeration" defaultValue="defaultMaps" required="true">
+            <caption>Maptype</caption>
+            <category>Open street</category>
+            <description>Set the default map type. See http://leaflet-extras.github.io/leaflet-providers/preview/index.html for examples. Note: not all providers have been implemented, due to HTTPS restrictions. Mapbox can be used through a custom URL.</description>
+            <enumerationValues>
+                <enumerationValue key="defaultMaps">Default</enumerationValue>
+                <enumerationValue key="OpenStreetMap_Mapnik">OpenStreetMap.Mapnik</enumerationValue>
+                <enumerationValue key="OpenStreetMap_BlackAndWhite">OpenStreetMap.BlackAndWhite</enumerationValue>
+                <enumerationValue key="OpenStreetMap_DE">OpenStreetMap.DE</enumerationValue>
+                <enumerationValue key="OpenStreetMap_France">OpenStreetMap.France</enumerationValue>
+                <enumerationValue key="OpenStreetMap_HOT">OpenStreetMap.HOT</enumerationValue>
+
+                <enumerationValue key="OpenTopoMap">OpenTopoMap</enumerationValue>
+
+                <enumerationValue key="Hydda_Full">Hydda.Full</enumerationValue>
+                <enumerationValue key="Hydda_Base">Hydda.Base</enumerationValue>
+                <enumerationValue key="Hydda_RoadsAndLabels">Hydda.RoadsAndLabels</enumerationValue>
+
+                <enumerationValue key="CartoDB_Positron">CartoDB.Positron</enumerationValue>
+                <enumerationValue key="CartoDB_PositronNoLabels">CartoDB.PositronNoLabels</enumerationValue>
+                <enumerationValue key="CartoDB_PositronOnlyLabels">CartoDB.PositronOnlyLabels</enumerationValue>
+                <enumerationValue key="CartoDB_DarkMatter">CartoDB.DarkMatter</enumerationValue>
+                <enumerationValue key="CartoDB_DarkMatterNoLabels">CartoDB.DarkMatterNoLabels</enumerationValue>
+                <enumerationValue key="CartoDB_DarkMatterOnlyLabels">CartoDB.DarkMatterOnlyLabels</enumerationValue>
+                <enumerationValue key="CartoDB_Voyager">CartoDB.Voyager</enumerationValue>
+                <enumerationValue key="CartoDB_VoyagerNoLabels">CartoDB.VoyagerNoLabels</enumerationValue>
+                <enumerationValue key="CartoDB_VoyagerOnlyLabels">CartoDB.VoyagerOnlyLabels</enumerationValue>
+                <enumerationValue key="CartoDB_VoyagerLabelsUnder">CartoDB.VoyagerLabelsUnder</enumerationValue>
+
+                <enumerationValue key="Stamen_Toner">Stamen.Toner</enumerationValue>
+                <enumerationValue key="Stamen_TonerBackground">Stamen.TonerBackground</enumerationValue>
+                <enumerationValue key="Stamen_TonerHybrid">Stamen.TonerHybrid</enumerationValue>
+                <enumerationValue key="Stamen_TonerLines">Stamen.TonerLines</enumerationValue>
+                <enumerationValue key="Stamen_TonerLabels">Stamen.TonerLabels</enumerationValue>
+                <enumerationValue key="Stamen_TonerLite">Stamen.TonerLite</enumerationValue>
+                <enumerationValue key="Stamen_Watercolor">Stamen.Watercolor</enumerationValue>
+                <enumerationValue key="Stamen_Terrain">Stamen.Terrain</enumerationValue>
+                <enumerationValue key="Stamen_TerrainBackground">Stamen.TerrainBackground</enumerationValue>
+                <enumerationValue key="Stamen_TopOSMRelief">Stamen.TopOSMRelief</enumerationValue>
+                <enumerationValue key="Stamen_TopOSMFeatures">Stamen.TopOSMFeatures</enumerationValue>
+
+                <enumerationValue key="Esri_WorldStreetMap">Esri.WorldStreetMap</enumerationValue>
+                <enumerationValue key="Esri_DeLorme">Esri.DeLorme</enumerationValue>
+                <enumerationValue key="Esri_WorldTopoMap">Esri.WorldTopoMap</enumerationValue>
+                <enumerationValue key="Esri_WorldImagery">Esri.WorldImagery</enumerationValue>
+                <enumerationValue key="Esri_WorldTerrain">Esri.WorldTerrain</enumerationValue>
+                <enumerationValue key="Esri_WorldShadedRelief">Esri.WorldShadedRelief</enumerationValue>
+                <enumerationValue key="Esri_WorldPhysical">Esri.WorldPhysical</enumerationValue>
+                <enumerationValue key="Esri_OceanBasemap">Esri.OceanBasemap</enumerationValue>
+                <enumerationValue key="Esri_NatGeoWorldMap">Esri.NatGeoWorldMap</enumerationValue>
+                <enumerationValue key="Esri_WorldGrayCanvas">Esri.WorldGrayCanvas</enumerationValue>
+
+                <enumerationValue key="BasemapAT_basemap">BasemapAT.basemap</enumerationValue>
+                <enumerationValue key="BasemapAT_grau">BasemapAT.grau</enumerationValue>
+                <enumerationValue key="BasemapAT_overlay">BasemapAT.overlay</enumerationValue>
+                <enumerationValue key="BasemapAT_highdpi">BasemapAT.highdpi</enumerationValue>
+                <enumerationValue key="BasemapAT_orthofoto">BasemapAT.orthofoto</enumerationValue>
+
+                <enumerationValue key="nlmaps_standaard">nlmaps.standaard</enumerationValue>
+                <enumerationValue key="nlmaps_pastel">nlmaps.pastel</enumerationValue>
+                <enumerationValue key="nlmaps_grijs">nlmaps.grijs</enumerationValue>
+                <enumerationValue key="nlmaps_luchtfoto">nlmaps.luchtfoto</enumerationValue>
+
+                <enumerationValue key="NASAGIBS_ModisTerraTrueColorCR">NASAGIBS.ModisTerraTrueColorCR</enumerationValue>
+                <enumerationValue key="NASAGIBS_ModisTerraBands367CR">NASAGIBS.ModisTerraBands367CR</enumerationValue>
+                <enumerationValue key="NASAGIBS_ViirsEarthAtNight2012">NASAGIBS.ViirsEarthAtNight2012</enumerationValue>
+                <enumerationValue key="NASAGIBS_ModisTerraLSTDay">NASAGIBS.ModisTerraLSTDay</enumerationValue>
+                <enumerationValue key="NASAGIBS_ModisTerraSnowCover">NASAGIBS.ModisTerraSnowCover</enumerationValue>
+                <enumerationValue key="NASAGIBS_ModisTerraAOD">NASAGIBS.ModisTerraAOD</enumerationValue>
+                <enumerationValue key="NASAGIBS_ModisTerraChlorophyll">NASAGIBS.ModisTerraChlorophyll</enumerationValue>
+
+                <enumerationValue key="NLS">NLS</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="geoJSONEntity" type="entity" required="false">
+            <caption>GeoJSON Entity</caption>
+            <category>Open street</category>
+            <description></description>
+        </property>
+        <property key="geoJSONAttribute" type="attribute" entityProperty="geoJSONEntity" required="false">
+            <caption>GeoJSON Attribute</caption>
+            <category>Open street</category>
+            <description>Attribute that contains a stringified GeoJSON</description>
+            <attributeTypes>
+                 <attributeType name="String" />
+            </attributeTypes>
+        </property>
+        <property key="geoJSONStyleAttribute" type="attribute" entityProperty="geoJSONEntity" required="false">
+            <caption>GeoJSON Style Attr</caption>
+            <category>Open street</category>
+            <description>Attribute that contains a stringified JSON which has the ability to style the GeoJSON</description>
+            <attributeTypes>
+                 <attributeType name="String" />
+            </attributeTypes>
+        </property>
+        <property key="geoJSONMicroflow" type="microflow" required="false">
+            <caption>GeoJSON Microflow</caption>
+            <category>Open street</category>
+            <description>The geoJSON datasource 'Microflow' that returns a list of GeoJSONs</description>
+            <returnType type="Object" entityProperty="geoJSONEntity" isList="true"/>
+        </property>
+        <property key="geoJSONOnMicroflow" type="microflow" required="false" entityProperty="geoJSONEntity">
+            <caption>GeoJSON Onclick</caption>
+            <category>Open street</category>
+            <description>Microflow that is executed when clicking on a GeoJSON</description>
+            <returnType type="Void"/>
         </property>
     </properties>
 </widget>

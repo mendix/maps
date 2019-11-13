@@ -6,9 +6,11 @@ import {
     Map,
     Marker,
     TileLayerOptions,
+    geoJSON,
     icon,
     tileLayer
 } from "leaflet";
+import "leaflet-providers";
 import * as classNames from "classnames";
 import ReactResizeDetector from "react-resize-detector";
 
@@ -16,6 +18,8 @@ import { Container, MapUtils } from "../utils/namespace";
 import Utils from "../utils/Utils";
 import { Alert } from "./Alert";
 import { validLocation } from "../utils/Validations";
+import { GeoJsonObject } from "geojson";
+import { GeoJSONObj } from "./MapsContainer";
 type MapProps = Container.MapProps;
 type DataSourceLocationProps = Container.DataSourceLocationProps;
 type Location = Container.Location;
@@ -26,6 +30,7 @@ const mapAttr = Utils.mapAttr;
 
 export interface LeafletMapProps extends SharedProps, MapProps {
     onClickMarker?: (event: LeafletEvent, locationAttr: DataSourceLocationProps) => void;
+    onClickGeoJSON?: (obj: mendix.lib.MxObject) => void;
 }
 
 export interface LeafletMapState {
@@ -39,6 +44,7 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
     private defaultCenterLocation: LatLngLiteral = { lat: 51.9066346, lng: 4.4861703 };
     private map?: Map;
     private markerGroup = new FeatureGroup();
+    private geoJSONGroup = new FeatureGroup();
     private readonly onResizeHandle = this.onResize.bind(this);
 
     readonly state: LeafletMapState = {
@@ -148,7 +154,7 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
     }
 
     private setTileLayer = () => {
-        const { mapProvider, mapsToken } = this.props;
+        const { mapProvider, mapsToken, openStreetMapType } = this.props;
 
         let urlTemplate = "";
         let mapAttribution = "";
@@ -159,6 +165,10 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
             const splitToken = mapsToken.split(",");
             urlTemplate = customUrls.hereMaps + `app_id=${splitToken[0]}&app_code=${splitToken[1]}`;
             mapAttribution = mapAttr.hereMapsAttr;
+        } else if (openStreetMapType && openStreetMapType !== "defaultMaps") {
+            const providerName = openStreetMapType.replace(/_/g, ".");
+
+            return tileLayer.provider(providerName);
         } else {
             urlTemplate = customUrls.openStreetMap;
             mapAttribution = mapAttr.openStreetMapAttr;
@@ -173,6 +183,43 @@ export class LeafletMap extends Component<LeafletMapProps, LeafletMapState> {
     private setDefaultCenter = (props: LeafletMapProps) => {
         if (!props.fetchingData) {
             this.renderMarkers(props.allLocations);
+            this.renderGEOJsons(props.geoJSONs);
+        }
+    }
+
+    private renderGEOJsons = (geojsons?: GeoJSONObj[]) => {
+        this.geoJSONGroup.clearLayers();
+        if (geojsons && geojsons.length) {
+            geojsons.forEach(geoObj => {
+                const { mxObj, geoJSONStyle } = geoObj;
+                const geo = geoObj.geoJSON;
+                const layer = this.geoJSONGroup
+                    .addLayer(
+                        geoJSON(geo as GeoJsonObject, {
+                            style: feature => {
+                                if (geoJSONStyle && geoJSONStyle !== null) {
+                                    return geoJSONStyle;
+                                }
+
+                                return feature!.properties && feature!.properties.style;
+                            },
+                            // tslint:disable-next-line:variable-name
+                            onEachFeature: (_feature, featureLayer) => {
+                                featureLayer.on({
+                                    click: () => {
+                                        if (this.props.onClickGeoJSON && mxObj) {
+                                            this.props.onClickGeoJSON(mxObj);
+                                        }
+                                    }
+                                });
+                            }
+                        })
+                    );
+                this.map!.addLayer(layer);
+            });
+        } else if (this.map) {
+            this.map.removeLayer(this.geoJSONGroup);
+            this.map.setZoom(this.props.zoomLevel);
         }
     }
 

@@ -22,9 +22,16 @@ type MapProps = Container.MapProps;
 type Location = Container.Location;
 type DataSourceLocationProps = Container.DataSourceLocationProps;
 
+export interface GeoJSONObj {
+    mxObj: mendix.lib.MxObject;
+    geoJSON: object | null;
+    geoJSONStyle: object | null;
+}
+
 export interface MapsContainerState {
     alertMessage?: string;
     locations: Location[];
+    geoJSONS: GeoJSONObj[];
     isFetchingData?: boolean;
 }
 
@@ -33,6 +40,7 @@ class MapsContainer extends Component<MapsContainerProps, MapsContainerState> {
     readonly state: MapsContainerState = {
         alertMessage: "",
         locations: [],
+        geoJSONS: [],
         isFetchingData: false
     };
 
@@ -41,11 +49,13 @@ class MapsContainer extends Component<MapsContainerProps, MapsContainerState> {
         const commonProps = {
             ...this.props as MapProps,
             allLocations: this.state.locations,
+            geoJSONs: this.state.geoJSONS,
             fetchingData: this.state.isFetchingData,
             className: this.props.class,
             alertMessage: this.state.alertMessage,
             divStyles: Utils.parseStyle(this.props.style),
             onClickMarker: this.onClickMarker,
+            onClickGeoJSON: this.onClickGeoJSON,
             mapsToken: mapsApiToken,
             inPreviewMode: false
         };
@@ -105,11 +115,53 @@ class MapsContainer extends Component<MapsContainerProps, MapsContainerState> {
         this.subscriptionHandles = [];
     }
 
-    private fetchData = (contextObject?: mendix.lib.MxObject) => {
+    private fetchData = async (contextObject?: mendix.lib.MxObject) => {
         this.setState({ isFetchingData: true });
+        const alertMessage: string[] = [];
+
+        if (this.props.geoJSONEntity && this.props.geoJSONAttribute && this.props.geoJSONMicroflow) {
+                const geoJSONS = await fetchData({
+                    type: "microflow",
+                    entity: this.props.geoJSONEntity,
+                    mxform: this.props.mxform,
+                    microflow: this.props.geoJSONMicroflow,
+                    inputParameterEntity: "",
+                    requiresContext: false
+                }).then(objects => objects.map(obj => {
+                    const text = obj.get(this.props.geoJSONAttribute as string);
+                    let val = null;
+                    try {
+                        val = typeof(text) === "string" && text !== "" ? JSON.parse(text) : null;
+                    } catch (error) {
+                        alertMessage.push(`Error parsing GeoJSON for obj ${obj.getGuid()}`);
+                        val = null;
+                    }
+
+                    let style: object | null = null;
+                    if (this.props.geoJSONStyleAttribute) {
+                        const styleText = obj.get(this.props.geoJSONStyleAttribute as string);
+                        try {
+                            style = typeof(styleText) === "string" && styleText !== "" ? JSON.parse(styleText) : null;
+                        } catch (error) {
+                            style = null;
+                        }
+                    }
+
+                    const geoJSONObj: GeoJSONObj = {
+                        mxObj: obj,
+                        geoJSON: val,
+                        geoJSONStyle: style
+                    };
+
+                    return geoJSONObj;
+                }).filter(obj => obj.geoJSON !== null));
+                this.setState({
+                    geoJSONS
+                });
+        }
+
         Promise.all(this.props.locations.map(locationAttr => this.retrieveData(locationAttr, contextObject)))
             .then(allLocations => {
-                const alertMessage: string[] = [];
                 const locations = allLocations.reduce((loc1, loc2) => loc1.concat(loc2), [])
                     .filter(location => {
                         if (validLocation(location)) {
@@ -236,6 +288,39 @@ class MapsContainer extends Component<MapsContainerProps, MapsContainerState> {
                 });
             }
         }
+    }
+
+    private onClickGeoJSON = (obj: mendix.lib.MxObject) => {
+        const { geoJSONOnMicroflow } = this.props;
+        if (obj && geoJSONOnMicroflow) {
+            this.executeMicroflow(obj, geoJSONOnMicroflow);
+        }
+    }
+
+    private executeMicroflow = (object: mendix.lib.MxObject, microflow: string) => {
+        const { mxform } = this.props;
+        const context = new mendix.lib.MxContext();
+
+        context.setContext(object.getEntity(), object.getGuid());
+
+        return new Promise((resolve, reject) => {
+            if (!microflow || microflow === "") {
+                return reject(new Error("Microflow parameter cannot be empty!"));
+            }
+            try {
+                window.mx.data.action({
+                    callback: resolve,
+                    context,
+                    error: reject,
+                    origin: mxform,
+                    params: {
+                        actionname: microflow
+                    }
+                });
+            } catch (e) {
+                reject(e);
+            }
+        });
     }
 }
 

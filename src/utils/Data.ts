@@ -4,7 +4,7 @@ import { UrlHelper } from "./UrlHelper";
 type MxObject = mendix.lib.MxObject;
 
 export const fetchData = (options: Data.FetchDataOptions): Promise<MxObject[]> => {
-    const { type, entity, contextObject, inputParameterEntity, microflow, mxform, nanoflow } = options;
+    const { type, entity, contextObject, inputParameterEntity, microflow, mxform, nanoflow, requiresContext } = options;
     if (type === "XPath" && entity) {
         return fetchByXPath({
             guid: contextObject && contextObject.getGuid(),
@@ -15,7 +15,10 @@ export const fetchData = (options: Data.FetchDataOptions): Promise<MxObject[]> =
     if (type === "microflow" && microflow && contextObject) {
         return fetchByMicroflow(microflow, contextObject, mxform, inputParameterEntity);
     }
-    if (type === "nanoflow" && nanoflow.nanoflow && contextObject) {
+    if (type === "microflow" && microflow && !requiresContext) {
+        return fetchByMicroflowSimple(microflow, mxform);
+    }
+    if (type === "nanoflow" && nanoflow && nanoflow.nanoflow && contextObject) {
         return fetchByNanoflow(nanoflow, contextObject, mxform, inputParameterEntity);
     }
 
@@ -44,6 +47,18 @@ const fetchByMicroflow = (actionName: string, contextObj: MxObject, mxform: mxui
     return new Promise((resolve, reject) => {
         const context = new mendix.lib.MxContext();
         context.setTrackObject(contextObj);
+        window.mx.ui.action(actionName, {
+            context,
+            origin: mxform,
+            callback: (mxObjects: MxObject[]) => resolve(mxObjects),
+            error: error => reject(new Error(`An error occurred while retrieving data via microflow: ${actionName}: ${error.message}`))
+        });
+    });
+};
+
+const fetchByMicroflowSimple = (actionName: string, mxform: mxui.lib.form._FormBase): Promise<MxObject[]> => {
+    return new Promise((resolve, reject) => {
+        const context = new mendix.lib.MxContext();
         window.mx.ui.action(actionName, {
             context,
             origin: mxform,

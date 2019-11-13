@@ -1,3 +1,5 @@
+import { GeoJSONObj } from "../components/MapsContainer";
+
 export namespace Container {
 
     export type MarKerImages = "systemImage" | "staticImage" | "enumImage";
@@ -5,6 +7,62 @@ export namespace Container {
     export type OnClickOptions = "doNothing" | "showPage" | "callMicroflow" | "callNanoflow";
     export type PageLocation = "content" | "popup" | "modal";
     export type mapProviders = "openStreet" | "mapBox" | "hereMaps" | "googleMaps";
+    export type OpenStreetMapType =
+        "defaultMaps" |
+        "OpenStreetMap_Mapnik" |
+        "OpenStreetMap_BlackAndWhite" |
+        "OpenStreetMap_DE" |
+        "OpenStreetMap_France" |
+        "OpenStreetMap_HOT" |
+        "OpenTopoMap" |
+        "Thunderforest_OpenCycleMap" |
+        "Thunderforest_Transport" |
+        "Thunderforest_TransportDark" |
+        "Thunderforest_SpinalMap" |
+        "Thunderforest_Landscape" |
+        "Thunderforest_Outdoors" |
+        "Thunderforest_Pioneer" |
+        "Hydda_Full" |
+        "Hydda_Base" |
+        "Hydda_RoadsAndLabels" |
+        "Stamen_Toner" |
+        "Stamen_TonerBackground" |
+        "Stamen_TonerHybrid" |
+        "Stamen_TonerLines" |
+        "Stamen_TonerLabels" |
+        "Stamen_TonerLite" |
+        "Stamen_Watercolor" |
+        "Stamen_Terrain" |
+        "Stamen_TerrainBackground" |
+        "Stamen_TopOSMRelief" |
+        "Stamen_TopOSMFeatures" |
+        "Esri_WorldStreetMap" |
+        "Esri_DeLorme" |
+        "Esri_WorldTopoMap" |
+        "Esri_WorldImagery" |
+        "Esri_WorldTerrain" |
+        "Esri_WorldShadedRelief" |
+        "Esri_WorldPhysical" |
+        "Esri_OceanBasemap" |
+        "Esri_NatGeoWorldMap" |
+        "Esri_WorldGrayCanvas" |
+        "BasemapAT_basemap" |
+        "BasemapAT_grau" |
+        "BasemapAT_overlay" |
+        "BasemapAT_highdpi" |
+        "BasemapAT_orthofoto" |
+        "nlmaps_standaard" |
+        "nlmaps_pastel" |
+        "nlmaps_grijs" |
+        "nlmaps_luchtfoto" |
+        "NASAGIBS_ModisTerraTrueColorCR" |
+        "NASAGIBS_ModisTerraBands367CR" |
+        "NASAGIBS_ViirsEarthAtNight2012" |
+        "NASAGIBS_ModisTerraLSTDay" |
+        "NASAGIBS_ModisTerraSnowCover" |
+        "NASAGIBS_ModisTerraAOD" |
+        "NASAGIBS_ModisTerraChlorophyll" |
+        "NLS";
 
     export interface WrapperProps {
         "class"?: string;
@@ -78,12 +136,24 @@ export namespace Container {
         mapStyles?: string;
     }
 
+    export interface OpenStreetMapOptions {
+        openStreetMapType?: OpenStreetMapType;
+    }
+
+    export interface GeoJSONOptions {
+        geoJSONEntity?: string;
+        geoJSONAttribute?: string;
+        geoJSONStyleAttribute?: string;
+        geoJSONMicroflow?: string;
+        geoJSONOnMicroflow?: string;
+    }
+
     export interface EnumerationImages {
         enumKey: string;
         enumImage: string;
     }
 
-    export interface MapProps extends MapControlOptions, DefaultLocations, MapUtils.Dimensions {
+    export interface MapProps extends MapControlOptions, DefaultLocations, MapUtils.Dimensions, GeoJSONOptions, OpenStreetMapOptions {
         mapProvider: mapProviders;
         apiToken?: string;
     }
@@ -98,7 +168,7 @@ export namespace Data {
         mxform: mxui.lib.form._FormBase;
         constraint?: string;
         microflow?: string;
-        nanoflow: Nanoflow;
+        nanoflow?: Nanoflow;
         contextObject?: mendix.lib.MxObject;
         inputParameterEntity: string;
         requiresContext: boolean;
@@ -127,6 +197,7 @@ export namespace MapUtils {
 
     export interface SharedProps {
         allLocations?: Container.Location[];
+        geoJSONs?: GeoJSONObj[];
         className?: string;
         alertMessage?: string;
         fetchingData?: boolean;
